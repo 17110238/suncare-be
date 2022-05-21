@@ -23,6 +23,9 @@ module.exports = {
       address: {
         type: Sequelize.STRING
       },
+      active: {
+        type: Sequelize.STRING,
+      },
       gender: {
         type: Sequelize.STRING
       },
