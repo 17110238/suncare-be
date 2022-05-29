@@ -59,11 +59,12 @@ let handleDeleteUser = async (req, res) => {
 }
 
 let getAllCode = async (req, res) => {
-
     try {
-        let data = await UserService.getAllCodeService(req.query.type)
+        let id = req.query.id
+        let data = await UserService.getAllCodeService(id)
         return res.status(200).json(data)
     }
+
     catch (err) {
         console.error('Get All Code Error: ' + err.message)
         return res.status(200).json({
@@ -73,6 +74,21 @@ let getAllCode = async (req, res) => {
     }
 }
 
+let confirmDoctor = async (req, res) => {
+    try {
+        let { doctorId } = req.body
+        let profileDoctor = await UserService.handleConfirmDoctor(doctorId)
+        return res.status(200).json(profileDoctor)
+    }
+    catch (error) {
+        return res.status(200).json({
+            errCode: -1,
+            errMessage: 'Error from Server!'
+        })
+    }
+}
+
+
 module.exports = {
-    handleLogin, handleGetAllUsers, handleCreateNewUser, handleEditUser, handleDeleteUser, getAllCode
+    handleLogin, handleGetAllUsers, handleCreateNewUser, handleEditUser, handleDeleteUser, getAllCode, confirmDoctor
 }

@@ -82,7 +82,6 @@ let getAllUsers = (userId) => {
 let createNewUser = (data) => {
     return new Promise(async (resolve, reject) => {
         try {
-
             let check = await checkEmail(data.email)
 
             if (check === false) {
@@ -97,7 +96,9 @@ let createNewUser = (data) => {
                     address: data.address,
                     roleId: data.role,
                     positionId: data.position,
-                    image: data.image
+                    image: data.image,
+                    certificateImage: data.certificateImage,
+                    isVerify: false
                 })
                 resolve({
                     errCode: 0,
@@ -171,8 +172,8 @@ let updateUser = (data) => {
             })
 
             if (user) {
-                user.firstName = data.firstName
-                user.lastName = data.lastName,
+                user.firstName = data.firstName,
+                    user.lastName = data.lastName,
                     user.address = data.address,
                     user.roleId = data.roleId,
                     user.positionId = data.positionId,
@@ -181,13 +182,16 @@ let updateUser = (data) => {
                 if (data.image) {
                     user.image = data.image
                 }
+                if (data.certificateImage) {
+                    user.certificateImage = data.certificateImage
+                }
                 await user.save()
-
                 resolve({
                     errCode: 0,
                     message: " Update the user success!"
                 })
             }
+
             else {
                 resolve({
                     errCode: 1,
@@ -227,6 +231,43 @@ let getAllCodeService = (typeInupt) => {
     })
 }
 
+let handleConfirmDoctor = (userId) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            if (!userId) {
+                resolve({
+                    errCode: 1,
+                    errMessage: "Missing requried parameter!"
+                })
+            }
+            else {
+                let user = await db.User.findOne({
+                    where: { id: userId },
+                    raw: false
+                })
+
+                if (user) {
+                    user.isVerify = true;
+                    await user.save()
+                    resolve({
+                        errCode: 0,
+                        message: "Confirmation of user information successfully!"
+                    })
+                }
+                else {
+                    resolve({
+                        errCode: 2,
+                        errMessage: "User not found!"
+                    })
+                }
+            }
+        }
+        catch (err) {
+            reject(err)
+        }
+    })
+}
+
 module.exports = {
-    handleUserLogin, getAllUsers, createNewUser, deleteUser, updateUser, getAllCodeService
+    handleUserLogin, getAllUsers, createNewUser, deleteUser, updateUser, getAllCodeService, handleConfirmDoctor
 }
