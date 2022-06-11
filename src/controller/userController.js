@@ -48,13 +48,13 @@ let handleEditUser = async (req, res) => {
 }
 
 let handleDeleteUser = async (req, res) => {
-    let id = req.query.id
-    if (!id) {
+    let data = req.body
+    if (!data.doctorId) {
         return res.status(200).json({
             errCode: 1, errMessage: 'Missing required parameters'
         })
     }
-    let deleteUser = await UserService.deleteUser(id)
+    let deleteUser = await UserService.deleteUser(data)
     return res.status(200).json(deleteUser)
 }
 
@@ -75,8 +75,8 @@ let getAllCode = async (req, res) => {
 
 let confirmDoctor = async (req, res) => {
     try {
-        let { doctorId } = req.body
-        let profileDoctor = await UserService.handleConfirmDoctor(doctorId)
+        let data = req.body
+        let profileDoctor = await UserService.handleConfirmDoctor(data)
         return res.status(200).json(profileDoctor)
     }
     catch (error) {

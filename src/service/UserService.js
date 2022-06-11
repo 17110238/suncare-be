@@ -1,5 +1,6 @@
 import db from '../models/index'
 import bcrypt from "bcryptjs"
+import emailService from './emailService'
 
 const salt = bcrypt.genSaltSync(10)
 
@@ -130,11 +131,11 @@ let hasUserPassword = (password) => {
     })
 }
 
-let deleteUser = (userId) => {
+let deleteUser = (data) => {
     return new Promise(async (resolve, reject) => {
         try {
             let user = await db.User.findOne({
-                where: { id: userId }
+                where: { id: data.doctorId }
             })
             if (!user) {
                 resolve({
@@ -143,13 +144,17 @@ let deleteUser = (userId) => {
                 })
             }
             await db.User.destroy({
-                where: { id: userId }
+                where: { id: data.doctorId }
+            })
+            await emailService.cancelDoctor({
+                receiverEmail: user.email,
+                patientName: data.language === 'vi' ? user.firstName + ' ' + user.lastName : user.lastName + ' ' + user.firstName,
+                language: data.language
             })
             resolve({
                 errCode: 0,
                 message: "The user has been deleted"
             })
-
         }
         catch (err) {
             reject(err)
@@ -231,10 +236,10 @@ let getAllCodeService = (typeInupt) => {
     })
 }
 
-let handleConfirmDoctor = (userId) => {
+let handleConfirmDoctor = (data) => {
     return new Promise(async (resolve, reject) => {
         try {
-            if (!userId) {
+            if (!data.doctorId) {
                 resolve({
                     errCode: 1,
                     errMessage: "Missing requried parameter!"
@@ -242,11 +247,16 @@ let handleConfirmDoctor = (userId) => {
             }
             else {
                 let user = await db.User.findOne({
-                    where: { id: userId },
+                    where: { id: data.doctorId },
                     raw: false
                 })
 
                 if (user) {
+                    await emailService.confirmDoctorEmail({
+                        receiverEmail: user.email,
+                        patientName: data.language === 'vi' ? user.firstName + ' ' + user.lastName : user.lastName + ' ' + user.firstName,
+                        language: data.language
+                    }) // send email to confirm doctor
                     user.isVerify = true;
                     await user.save()
                     resolve({
