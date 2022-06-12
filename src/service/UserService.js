@@ -10,8 +10,14 @@ let handleUserLogin = (email, password) => {
             let userData = {}
             let isExist = await checkEmail(email)
             if (isExist) {
-                let user = await db.User.findOne({ where: { email: email }, attributes: ['email', 'roleId', 'password', 'firstName'], raw: true },)
+                let user = await db.User.findOne({ where: { email: email }, attributes: ['email', 'roleId', 'password', 'firstName', 'isVerify'], raw: true },)
                 const validPassword = await bcrypt.compareSync(password, user.password)
+                if (user.isVerify === 0 && user.roleId === 'R2') {
+                    resolve({
+                        errCode: 1,
+                        errMessage: 'Your information has not been verified. Please visit again later!'
+                    })
+                }
                 if (validPassword) {
                     userData.errCode = 0
                     userData.errMessage = 'Login success!'
