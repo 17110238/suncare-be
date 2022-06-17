@@ -137,6 +137,43 @@ let getBodyCancelDoctorHTML = (dataSend) => {
     return result
 }
 
+let registerUser = async (dataSend) => {
+    let transporter = nodemailer.createTransport({
+        host: "smtp.gmail.com",
+        port: 587,
+        secure: false, // true for 465, false for other ports
+        auth: {
+            user: process.env.EMAIL_APP, // generated ethereal user
+            pass: process.env.EMAIL_APP_PASSWORD, // generated ethereal password
+        },
+    });
+
+    // send mail with defined transport object
+    let info = await transporter.sendMail({
+        from: "<phamngoctien4321@gmail.com>", // sender address
+        to: dataSend.receiverEmail, // list of receivers
+        subject: "Chao mung ban den voi SunCare", // Subject line
+        html: getBodyRegisterUserHTML(dataSend)
+    })
+}
+
+let getBodyRegisterUserHTML = (dataSend) => {
+    let result = ''
+    if (dataSend.language === 'vi') {
+        result = `<h3>Xin chào ${dataSend.patientName}!</h3>
+        <p>Chào mừng bạn đến với đại gia đình SunCare! Nơi sẽ giúp bạn chăm sóc sức khỏe bản thân tốt hơn, theo một cách tiện lợi hơn</p>
+        <p>Một lần nữa, chào mừng và xin chân thành cảm ơn bạn. Chúc bạn một ngày an lành!</p>`
+    }
+    if (dataSend.language === 'en') {
+        result = `<h3> Dear ${dataSend.patientName}!</h3>
+        <p>Welcome to SunCare! Place where can help you to take care of your health in the better way, better life</p>
+        <p>Once again, thank you and wish you will have a good day!</p>
+          <p>Sincerely thank!</p>
+        `
+    }
+    return result
+}
+
 module.exports = {
     setSimpleEmail, confirmDoctorEmail, cancelDoctor
 }
