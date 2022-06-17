@@ -57,10 +57,10 @@ let getAllSpecialtyService = () => {
 }
 
 
-let getDetailSpecialtyService = (idInput) => {
+let getDetailSpecialtyService = (inputId) => {
     return new Promise(async (resolve, reject) => {
         try {
-            if (!idInput) {
+            if (!inputId) {
                 resolve({
                     errCode: 1,
                     errMessage: "Missing requried parameter!"
@@ -69,7 +69,7 @@ let getDetailSpecialtyService = (idInput) => {
             else {
 
                 let data = await db.Specialty.findOne({
-                    where: { id: idInput },
+                    where: { id: inputId },
                     attributes: {
                         exclude: ['image']
                     }
@@ -88,7 +88,53 @@ let getDetailSpecialtyService = (idInput) => {
     })
 }
 
+let getDetailSpecialtyByIdService = (inputId, location) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            if (!inputId || !location) {
+                resolve({
+                    errCode: 1,
+                    errMessage: "Missing requried parameter!"
+                })
+            }
+            else {
+                let data = await db.Specialty.findOne({
+                    where: { id: inputId },
+                    attributes: ['contentHTML', 'contentMarkdown']
+                })
+
+                if (data) {
+                    let doctorSpeciaty = []
+                    if (location === 'ALL') {
+                        doctorSpeciaty = await db.Doctor_Info.findAll({
+                            where: { specialtyId: inputId },
+                            attributes: ['doctorId', 'provinceId']
+                        })
+                        console.log("doctorSpeciaty", doctorSpeciaty)
+                    } else {
+                        doctorSpeciaty = await db.Doctor_Info.findAll({
+                            where: { specialtyId: inputId, provinceId: location },
+                            attributes: ['doctorId', 'provinceId']
+                        })
+                    }
+                    data.doctorSpeciaty = doctorSpeciaty
+                }
+                else { data = {} }
+                console.log("data", data)
+                resolve({
+                    errCode: 0,
+                    errMessage: "Save a new Specialty success!",
+                    data
+                })
+            }
+        }
+        catch (err) {
+            reject(err);
+        }
+    })
+}
+
 
 module.exports = {
-    saveNewSpecialtyService, getAllSpecialtyService, getDetailSpecialtyService
+    saveNewSpecialtyService, getAllSpecialtyService, getDetailSpecialtyService, getDetailSpecialtyByIdService
 }

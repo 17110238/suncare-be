@@ -9,7 +9,7 @@ let getDoctorHomeService = (limitInput) => {
         try {
             let users = await db.User.findAll({
                 limit: limitInput,
-                where: { roleId: 'R2' },
+                where: { roleId: 'R2', isVerify: 1 },
                 order: [["createdAt", "DESC"]],
                 attributes: {
                     exclude: ['password']
@@ -38,7 +38,7 @@ let getAllDoctorService = () => {
     return new Promise(async (resolve, reject) => {
         try {
             let doctors = await db.User.findAll({
-                where: { roleId: 'R2' },
+                where: { roleId: 'R2', isVerify: 1 },
                 attributes: { exclude: ['image', 'password'] }
             })
 
@@ -54,15 +54,32 @@ let getAllDoctorService = () => {
     })
 }
 
+const validdateInput = (data) => {
+    const objVlidate = {
+        doctorId: data.doctorId,
+        contentHTML: data.contentHTML,
+        contentMarkdown: data.contentMarkdown,
+        action: data.action,
+        selectedPrice: data.selectedPrice,
+        selectedPayment: data.selectedPayment,
+        selectedProvince: data.selectedProvince,
+        nameClinic: data.nameClinic,
+        addressClinic: data.addressClinic,
+        specialtyId: data.specialtyId
+    }
+    Object.values(objVlidate).every(value => {
+        if (!value) {
+            return false
+        }
+    })
+    return true
+}
+
 let saveDetailInfoDoctorService = (inputData) => {
     return new Promise(async (resolve, reject) => {
-
         try {
-
-            if (!inputData.doctorId || !inputData.contentHTML || !inputData.contentMarkdown
-                || !inputData.action || !inputData.selectedPrice || !inputData.selectedPayment
-                || !inputData.selectedProvince || !inputData.nameClinic || !inputData.addressClinic
-                || !inputData.note || !inputData.specialtyId) {
+            const valid = validdateInput(inputData)
+            if (!valid) {
                 resolve({
                     errCode: 1,
                     errMessage: 'Missing parameter!'
@@ -70,7 +87,6 @@ let saveDetailInfoDoctorService = (inputData) => {
             }
             else {
                 if (inputData.action === 'CREATE') {
-
                     //upsert to Markdown table
                     await db.Markdown.create({
                         contentHTML: inputData.contentHTML,
