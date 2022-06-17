@@ -105,7 +105,7 @@ let createNewUser = (data) => {
                     positionId: data.position,
                     image: data.image,
                     certificateImage: data.certificateImage,
-                    isVerify: false
+                    isVerify: data.isVerify
                 })
                 resolve({
                     errCode: 0,

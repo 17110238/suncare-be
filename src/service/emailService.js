@@ -48,7 +48,6 @@ let getBodyHTML = (dataSend) => {
         
         <p>If the above information is valid, please click the link below to confirm to complete the procedure to book an appointment</p>
         <a href=${dataSend.redirectLink}>Click vào link này!</a>
-
         <p>Sincerely thank!</p>
         `
     }
