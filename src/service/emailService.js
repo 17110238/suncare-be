@@ -24,7 +24,6 @@ let setSimpleEmail = async (dataSend) => {
 
 let getBodyHTML = (dataSend) => {
     let result = ''
-
     if (dataSend.language === 'vi') {
         result = `<h3>Xin chào ${dataSend.patientName}!</h3>
         <p>Bạn nhận được email này vì đã đặt lịch khám bệnh online trên SunCare!</p>
@@ -33,7 +32,8 @@ let getBodyHTML = (dataSend) => {
         <div><b>Tên Bác sĩ: ${dataSend.doctorName}</b> </div>
         
         <p>Nếu các thông tin trên hợp lệ, vui lòng click đường link bên dưới để xác nhận để hoàn tất thủ tục đặt lịch khám bệnh</p>
-        <a href=${dataSend.redirectLink}>Click vào link này!</a>
+        <a href=${dataSend.redirectConfirmSheduleLink}>Click vào link này để xác nhận đặt lịch!</a> <br/>
+        <a href=${dataSend.redirectCancleSheduleLink}>Click vào link này để hủy đặt lịch!</a>
 
         <p>Xin chân thành cảm ơn!</p>
         `
@@ -47,7 +47,8 @@ let getBodyHTML = (dataSend) => {
         <div><b>Doctor Name: ${dataSend.doctorName}</b> </div>
         
         <p>If the above information is valid, please click the link below to confirm to complete the procedure to book an appointment</p>
-        <a href=${dataSend.redirectLink}>Click vào link này!</a>
+        <a href=${dataSend.redirectConfirmSheduleLink}>Click this link to cancle your appointment!</a> <br/>
+        <a href=${dataSend.redirectCancleSheduleLink}>Click this link to confirm your appointment!</a>
         <p>Sincerely thank!</p>
         `
     }
@@ -152,7 +153,7 @@ let registerUser = async (dataSend) => {
     let info = await transporter.sendMail({
         from: "<phamngoctien4321@gmail.com>", // sender address
         to: dataSend.receiverEmail, // list of receivers
-        subject: "Chao mung ban den voi SunCare", // Subject line
+        subject: "Chao mung ban den voi SunCare!", // Subject line
         html: getBodyRegisterUserHTML(dataSend)
     })
 }
@@ -175,5 +176,5 @@ let getBodyRegisterUserHTML = (dataSend) => {
 }
 
 module.exports = {
-    setSimpleEmail, confirmDoctorEmail, cancelDoctor
+    setSimpleEmail, confirmDoctorEmail, cancelDoctor, registerUser
 }

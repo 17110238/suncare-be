@@ -10,7 +10,7 @@ let handleUserLogin = (email, password) => {
             let userData = {}
             let isExist = await checkEmail(email)
             if (isExist) {
-                let user = await db.User.findOne({ where: { email: email }, attributes: ['email', 'roleId', 'password', 'firstName', 'isVerify'], raw: true },)
+                let user = await db.User.findOne({ where: { email: email }, raw: true },)
                 const validPassword = await bcrypt.compareSync(password, user.password)
                 if (user.isVerify === 0 && user.roleId === 'R2') {
                     resolve({
@@ -106,6 +106,11 @@ let createNewUser = (data) => {
                     image: data.image,
                     certificateImage: data.certificateImage,
                     isVerify: data.isVerify
+                })
+                await emailService.registerUser({
+                    receiverEmail: data.email,
+                    patientName: data.language === 'vi' ? data.firstName + ' ' + data.lastName : data.lastName + ' ' + data.firstName,
+                    language: data.language
                 })
                 resolve({
                     errCode: 0,

@@ -223,7 +223,6 @@ let getAllcodeScheduleTimeDoctorService = () => {
 let bulkCreateScheduleService = (data) => {
     return new Promise(async (resolve, reject) => {
         try {
-
             if (!data.arrSchedule || !data.doctorId || !data.date) {
                 resolve({
                     errCode: 1,
@@ -238,14 +237,11 @@ let bulkCreateScheduleService = (data) => {
                         return item
                     })
                 }
-
                 // get All exist data
                 let existing = await db.Schedule.findAll({
                     where: { doctorId: data.doctorId, date: data.date },
                     attributes: ['timeType', 'date', 'doctorId', 'maxNumber']
                 })
-
-                console.log('existing', existing, 'schedule', schedule)
 
                 let toCreate = _.differenceWith(schedule, existing, (a, b) => {
                     return a.timeType === b.timeType && a.date === b.date
@@ -260,7 +256,6 @@ let bulkCreateScheduleService = (data) => {
                     errMessage: 'Ok'
                 })
             }
-
         }
         catch (err) {
             reject(err)
@@ -413,8 +408,86 @@ let getProfileDoctorByIdService = (inputId) => {
     })
 }
 
+let getListPatientForDoctorService = (doctorId, date) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            if (!doctorId || !date) {
+                resolve({
+                    errCode: 1,
+                    errMessage: 'Missing required parameter!',
+                })
+            }
+            else {
+                let data = await db.Booking.findAll({
+                    where: {
+                        statusId: 'S2',
+                        doctorId: doctorId,
+                        date: date
+                    },
+                    include: [
+                        {
+                            model: db.User, as: 'patientData',
+                            attributes: ['email', 'firstName', 'address', 'gender'],
+                            include: [
+                                {
+                                    model: db.Allcode, as: 'genderData', attributes: ['valueVi', 'valueEn']
+                                },
+                            ]
+                        },
+                        {
+                            model: db.Allcode, as: 'timeTypeDataPatient',
+                            attributes: ['valueVi', 'valueEn'],
+                        }
+                    ],
+                    raw: false,
+                    nest: true
+                })
+                resolve({
+                    errCode: 0,
+                    data: data
+                })
+            }
+        }
+        catch (err) {
+            reject(err)
+        }
+    })
+}
+
+let handleConfirmAndPaymentPatientService = (data) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            if (!data.doctorId || !data.patientId || !data.email) {
+                resolve({
+                    errCode: 1,
+                    errMessage: 'Missing required parameter!',
+                })
+            }
+            else {
+                let data = await db.Booking.findAll({
+                    where: {
+                        statusId: 'S2',
+                        doctorId: doctorId,
+                        date: date
+                    },
+                    raw: false,
+                })
+
+
+                resolve({
+                    errCode: 0,
+                    data: data
+                })
+            }
+        }
+        catch (err) {
+            reject(err)
+        }
+    })
+}
+
 module.exports = {
     getDoctorHomeService, getAllDoctorService, saveDetailInfoDoctorService, getDoctorByIdService, getAllcodeScheduleTimeDoctorService,
     bulkCreateScheduleService, getScheduleByDateService, getListPriceService, getListPaymentService, getProvinceService,
-    getProfileDoctorByIdService
+    getProfileDoctorByIdService, getListPatientForDoctorService, handleConfirmAndPaymentPatientService
 }

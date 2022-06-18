@@ -21,32 +21,41 @@ let postBookAppoinmentService = (data) => {
                     time: data.timeString,
                     doctorName: data.doctorName,
                     language: data.language,
-                    redirectLink: buildUrlEmail(data.doctorId, token)
+                    redirectConfirmSheduleLink: confirmSchedule(data.doctorId, token),
+                    redirectCancleSheduleLink: cancleSchedule(data.doctorId, token, data.scheduleId)
                 })
-
                 // upsert
                 let user = await db.User.findOrCreate({
                     where: { email: data.email },
                     defaults: {
                         email: data.email,
                         roleId: 'R3',
+                        gender: data.gender,
+                        address: data.address,
+                        phone: data.phoneNumber,
                     }
                 })
 
+                let schedule = await db.Schedule.findOne({
+                    where: {
+                        id: +data.scheduleId
+                    },
+                    raw: false
+                })
+                if (schedule) {
+                    schedule.isActive = false
+                    await schedule.save()
+                }
                 if (user[0] && user) {
-                    await db.Booking.findOrCreate({
-                        where: { patientId: user[0].id },
-                        defaults: {
-                            statusId: 'S1',
-                            doctorId: data.doctorId,
-                            patientId: user[0].id,
-                            date: data.date,
-                            timeType: data.timeType,
-                            token: token
-                        }
+                    await db.Booking.create({
+                        statusId: 'S1',
+                        doctorId: data.doctorId,
+                        patientId: user[0].id,
+                        date: data.date,
+                        timeType: data.timeType,
+                        token: token
                     })
                 }
-
                 resolve({
                     errCode: 0,
                     errMessage: 'Save info patient success!',
@@ -59,23 +68,26 @@ let postBookAppoinmentService = (data) => {
     })
 }
 
-let buildUrlEmail = (doctorId, token) => {
-    let result = `${process.env.URL_REACT}/verify-booking?token=${token}&doctorId=${doctorId}`
+let confirmSchedule = (doctorId, token) => {
+    let result = `${process.env.URL_REACT}/verify-booking?token=${token}&doctorId=${doctorId}&isConfirm=true`
+    return result
+}
+
+let cancleSchedule = (doctorId, token, scheduleId) => {
+    let result = `${process.env.URL_REACT}/verify-booking?token=${token}&doctorId=${doctorId}&isConfirm=false&scheduleId=${scheduleId}`
     return result
 }
 
 let postVerifyBookAppoinmentService = (data) => {
     return new Promise(async (resolve, reject) => {
         try {
-            if (!data.token || !data.doctorId) {
+            if (!data.token || !data.doctorId || !data.isConfirm) {
                 resolve({
                     errCode: 1,
                     errMessage: 'Missing required parameter!',
                 })
             }
-
             else {
-
                 let appoinment = await db.Booking.findOne({
                     where: {
                         statusId: 'S1',
@@ -84,24 +96,34 @@ let postVerifyBookAppoinmentService = (data) => {
                     },
                     raw: false
                 })
-
                 if (appoinment) {
-                    appoinment.statusId = 'S2'
-
+                    appoinment.statusId = data.isConfirm === 'true' ? 'S2' : 'S4'
                     await appoinment.save()
 
+                    // Neu huy lich hen thi mo lai thoi gian benh nhan da dat lich
+                    if (data.isConfirm === 'false') {
+                        const schedule = await db.Schedule.findOne({
+                            where: {
+                                id: +data.scheduleId
+                            },
+                            raw: false
+                        })
+                        if (schedule) {
+                            schedule.isActive = true
+                            await schedule.save()
+                        }
+                    }
                     resolve({
                         errCode: 0,
-                        errMessage: 'Update the appoinment success!',
+                        errMessage: data.isConfirm === 'true' ? 'Xác nhận lịch hẹn thành công!' : 'Hủy Lịch khám thành công!',
                     })
                 }
                 else {
                     resolve({
                         errCode: 2,
-                        errMessage: 'Appointment has been activated or does not exist!',
+                        errMessage: data.isConfirm === 'true' ? 'Lịch hẹn không tồn tại hoặc đã tồn tại!' : 'Lịch khám này đã được hủy!',
                     })
                 }
-
             }
         }
         catch (err) {

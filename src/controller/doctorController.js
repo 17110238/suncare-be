@@ -156,7 +156,37 @@ let getProfileDoctorById = async (req, res) => {
     }
 }
 
+let getListPatientForDoctor = async (req, res) => {
+    try {
+        const doctorId = req.query.doctorId
+        const date = req.query.date
+        let profileDoctor = await doctorService.getListPatientForDoctorService(doctorId, date)
+        return res.status(200).json(profileDoctor)
+    }
+    catch (error) {
+        return res.status(200).json({
+            errCode: -1,
+            errMessage: 'Error from Server!'
+        })
+    }
+}
+
+let handleConfirmAndPaymentPatient = async (req, res) => {
+    try {
+        const { data } = req.body
+        let profileDoctor = await doctorService.handleConfirmAndPaymentPatientService(data)
+        return res.status(200).json(profileDoctor)
+    }
+    catch (error) {
+        return res.status(200).json({
+            errCode: -1,
+            errMessage: 'Error from Server!'
+        })
+    }
+}
+
+
 module.exports = {
     getTopDoctorHome, getAllDoctor, postInfoDoctors, getDoctorByID, getAllcodeScheduleTimeDoctor, bulkCreateSchedule, getScheduleByDate,
-    getListPrice, getListPayment, getProvince, getProfileDoctorById
+    getListPrice, getListPayment, getProvince, getProfileDoctorById, getListPatientForDoctor, handleConfirmAndPaymentPatient
 }
