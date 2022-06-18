@@ -464,19 +464,25 @@ let handleConfirmAndPaymentPatientService = (data) => {
                 })
             }
             else {
-                let data = await db.Booking.findAll({
+
+                let appointment = await db.Booking.findOne({
                     where: {
-                        statusId: 'S2',
-                        doctorId: doctorId,
-                        date: date
+                        doctorId: data.doctorId,
+                        patientId: data.patientId,
+                        timeType: data.timeType,
+                        statusId: 'S2'
                     },
                     raw: false,
                 })
+                console.log("appointment", appointment)
 
-
+                if (appointment) {
+                    appointment.statusId = 'S3'
+                    await appointment.save()
+                }
                 resolve({
                     errCode: 0,
-                    data: data
+                    errMessage: data
                 })
             }
         }

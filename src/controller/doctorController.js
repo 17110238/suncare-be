@@ -173,7 +173,7 @@ let getListPatientForDoctor = async (req, res) => {
 
 let handleConfirmAndPaymentPatient = async (req, res) => {
     try {
-        const { data } = req.body
+        const data = req.body
         let profileDoctor = await doctorService.handleConfirmAndPaymentPatientService(data)
         return res.status(200).json(profileDoctor)
     }
