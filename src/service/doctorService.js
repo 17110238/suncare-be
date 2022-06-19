@@ -1,6 +1,8 @@
 import db from '../models/index'
 require('dotenv').config()
 import _ from 'lodash'
+import emailService from './emailService'
+
 
 const MAX_NUMBER_SCHEDULE = process.env.MAX_NUMBER_SCHEDULE
 
@@ -306,7 +308,6 @@ let getListPriceService = () => {
             let prices = await db.Allcode.findAll({
                 where: { type: 'PRICE' },
             })
-
             resolve({
                 errCode: 0,
                 errMessage: 'Get All Prices Success!',
@@ -420,14 +421,14 @@ let getListPatientForDoctorService = (doctorId, date) => {
             else {
                 let data = await db.Booking.findAll({
                     where: {
-                        statusId: 'S2',
+                        // statusId: 'S2',
                         doctorId: doctorId,
                         date: date
                     },
                     include: [
                         {
                             model: db.User, as: 'patientData',
-                            attributes: ['email', 'firstName', 'address', 'gender'],
+                            attributes: ['email', 'firstName', 'address', 'gender', 'phoneNumber'],
                             include: [
                                 {
                                     model: db.Allcode, as: 'genderData', attributes: ['valueVi', 'valueEn']
@@ -437,7 +438,11 @@ let getListPatientForDoctorService = (doctorId, date) => {
                         {
                             model: db.Allcode, as: 'timeTypeDataPatient',
                             attributes: ['valueVi', 'valueEn'],
-                        }
+                        },
+                        {
+                            model: db.Allcode, as: 'priceDataPatient',
+                            attributes: ['valueVi', 'valueEn'],
+                        },
                     ],
                     raw: false,
                     nest: true
@@ -464,7 +469,6 @@ let handleConfirmAndPaymentPatientService = (data) => {
                 })
             }
             else {
-
                 let appointment = await db.Booking.findOne({
                     where: {
                         doctorId: data.doctorId,
@@ -474,15 +478,17 @@ let handleConfirmAndPaymentPatientService = (data) => {
                     },
                     raw: false,
                 })
-                console.log("appointment", appointment)
-
                 if (appointment) {
-                    appointment.statusId = 'S3'
-                    await appointment.save()
+                    await emailService.paymentOrder({
+                        receiverEmail: data.email,
+                        patientName: data.patientName,
+                        language: data.language,
+                        paymentOrderLink: paymentOrderLink(data.patientName, data.phoneNumber, data.currentDate, data.email, data.price, data.doctorName, data.timeSchudle, data.doctorId, data.patientId),
+                    }) // send email to confirm doctor
                 }
                 resolve({
                     errCode: 0,
-                    errMessage: data
+                    errMessage: data.language === 'vi' ? 'Xác nhận thông tin thành công và đã gửi hóa đơn đến người dùng.' : 'Confirm the information successfully and have sent the invoice to the user.'
                 })
             }
         }
@@ -490,6 +496,11 @@ let handleConfirmAndPaymentPatientService = (data) => {
             reject(err)
         }
     })
+}
+
+let paymentOrderLink = (patientName, phoneNumber, date, email, price, doctorName, timeSchudle, doctorId, patientId) => {
+    let result = `${process.env.URL_REACT}/payment-order?patientName=${patientName}&doctorId=${doctorId}&patientId=${patientId}&timeSchudle=${encodeURIComponent(timeSchudle)}&phoneNumber=${phoneNumber}&date=${date}&email=${email}&price=${price}&doctorName=${doctorName}`
+    return result
 }
 
 module.exports = {

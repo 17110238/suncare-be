@@ -2,6 +2,8 @@ import db from '../models/index'
 require('dotenv').config()
 import emailService from './emailService'
 import { v4 as uuidv4 } from 'uuid'
+import Stripe from 'stripe';
+const stripe = new Stripe('sk_test_51LC4rKI4mP7c8dVY3ef3fTSn30ch5e3x1SJrmJwYTIEXzkeeZ7aIPZHSUoZc0TLBv6TvRfZmVs2YzVv30JGx47t7002UNF7yPT');
 
 let postBookAppoinmentService = (data) => {
     return new Promise(async (resolve, reject) => {
@@ -19,6 +21,7 @@ let postBookAppoinmentService = (data) => {
                     receiverEmail: data.email,
                     patientName: data.name,
                     time: data.timeString,
+                    price: data.price,
                     doctorName: data.doctorName,
                     language: data.language,
                     redirectConfirmSheduleLink: confirmSchedule(data.doctorId, token),
@@ -53,7 +56,8 @@ let postBookAppoinmentService = (data) => {
                         patientId: user[0].id,
                         date: data.date,
                         timeType: data.timeType,
-                        token: token
+                        token: token,
+                        priceId: data.priceId,
                     })
                 }
                 resolve({
@@ -132,6 +136,87 @@ let postVerifyBookAppoinmentService = (data) => {
     })
 }
 
+let handlePaymentCheckoutService = (data) => {
+    return new Promise(async (resolve, reject) => {
+        const { token, email, price, patientName, patientId, doctorId, date } = data
+        try {
+            if (!token || !email || !price) {
+                resolve({
+                    errCode: 1,
+                    errMessage: 'Thanh toán thất bại!',
+                })
+            }
+            else {
+                try {
+                    const appoinment = await db.Booking.findOne({
+                        where: {
+                            statusId: 'S2',
+                            patientId,
+                            doctorId,
+                            date
+                        },
+                        raw: false
+                    })
+                    if (appoinment) {
+                        const customer = await stripe.customers.create({
+                            email: token.email,
+                            source: token.id,
+                        });
+                        const charge = await stripe.charges.create(
+                            {
+                                amount: +price,
+                                currency: "VND",
+                                customer: customer.id,
+                                receipt_email: token.email,
+                                description: `Da nhan tien thanh toan tu ${patientName}`,
+                                shipping: {
+                                    name: token.card.name,
+                                    address: {
+                                        line1: token.card.address_line1,
+                                        line2: token.card.address_line2,
+                                        city: token.card.address_city,
+                                        country: token.card.address_country,
+                                        postal_code: token.card.address_zip,
+                                    },
+                                },
+                            },
+                        );
+                        if (charge) {
+                            if (appoinment) {
+                                appoinment.statusId = 'S3'
+                                await appoinment.save()
+                            }
+                        }
+                        resolve({
+                            errCode: 0,
+                            errMessage: 'Thanh toán thành công!',
+                        })
+                    }
+                    else {
+                        resolve({
+                            errCode: 1,
+                            errMessage: 'Hóa đơn này đã được thanh toán!',
+                        })
+                    }
+                }
+                catch (error) {
+                    console.error("Error:", error);
+                    resolve({
+                        errCode: 1,
+                        errMessage: 'Thanh toán thất bại!',
+                    })
+                }
+            }
+        }
+        catch (err) {
+            resolve({
+                errCode: 1,
+                errMessage: 'Thanh toán thất bại!',
+            })
+        }
+    })
+}
+
 module.exports = {
-    postBookAppoinmentService, postVerifyBookAppoinmentService
+    postBookAppoinmentService, postVerifyBookAppoinmentService, handlePaymentCheckoutService
 }

@@ -28,8 +28,9 @@ let getBodyHTML = (dataSend) => {
         result = `<h3>Xin chào ${dataSend.patientName}!</h3>
         <p>Bạn nhận được email này vì đã đặt lịch khám bệnh online trên SunCare!</p>
         <p>Thông tin đặt lịch khám bệnh: </p>
-        <div><b>Thời gian: ${dataSend.time}</b> </div>
         <div><b>Tên Bác sĩ: ${dataSend.doctorName}</b> </div>
+        <div><b>Thời gian: ${dataSend.time}</b> </div>
+        <div><b>Giá khám: ${dataSend.price}</b> </div>
         
         <p>Nếu các thông tin trên hợp lệ, vui lòng click đường link bên dưới để xác nhận để hoàn tất thủ tục đặt lịch khám bệnh</p>
         <a href=${dataSend.redirectConfirmSheduleLink}>Click vào link này để xác nhận đặt lịch!</a> <br/>
@@ -43,8 +44,9 @@ let getBodyHTML = (dataSend) => {
         result = `<h3> Dear ${dataSend.patientName}!</h3>
         <p>You received this email because you booked an online medical appointment on SunCare!</p>
         <p>Information to book a medical appointment: </p>
-        <div><b>Time: ${dataSend.time}</b> </div>
         <div><b>Doctor Name: ${dataSend.doctorName}</b> </div>
+        <div><b>Time: ${dataSend.time}</b> </div>
+        <div><b>Price: ${dataSend.price}</b> </div>
         
         <p>If the above information is valid, please click the link below to confirm to complete the procedure to book an appointment</p>
         <a href=${dataSend.redirectConfirmSheduleLink}>Click this link to cancle your appointment!</a> <br/>
@@ -175,6 +177,44 @@ let getBodyRegisterUserHTML = (dataSend) => {
     return result
 }
 
+let paymentOrder = async (dataSend) => {
+    let transporter = nodemailer.createTransport({
+        host: "smtp.gmail.com",
+        port: 587,
+        secure: false, // true for 465, false for other ports
+        auth: {
+            user: process.env.EMAIL_APP, // generated ethereal user
+            pass: process.env.EMAIL_APP_PASSWORD, // generated ethereal password
+        },
+    });
+
+    // send mail with defined transport object
+    let info = await transporter.sendMail({
+        from: "<phamngoctien4321@gmail.com>", // sender address
+        to: dataSend.receiverEmail, // list of receivers
+        subject: dataSend.language === 'vi' ? 'Vui lòng thanh toán trước khi khám bệnh!' : 'Please pay before medical examination!', // Subject line
+        html: getBodyPaymentOrderHTML(dataSend)
+    })
+}
+
+let getBodyPaymentOrderHTML = (dataSend) => {
+    let result = ''
+    if (dataSend.language === 'vi') {
+        result = `<h3>Xin chào ${dataSend.patientName}!</h3>
+        <p>Bạn nhận được email này vì bác sĩ đã đồng ý xác nhận thông tin đặt lịch khám bệnh online trên SunCare!</p>
+        <a href=${dataSend.paymentOrderLink}>Vui lòng click vào link này </a> để thanh toán trước khi khám bệnh! <br/>
+        <p>Một lần nữa, chào mừng và xin chân thành cảm ơn bạn. Chúc bạn một ngày an lành!</p>`
+    }
+    if (dataSend.language === 'en') {
+        result = `<h3> Dear ${dataSend.patientName}!</h3>
+        <p>You received this email because the doctor has agreed to confirm the online appointment booking information on SunCare!</p>
+        <a href=${dataSend.paymentOrderLink}>Please click this link to pay before medical examination!</a> <br/>
+        <p>Once again, welcome and thank you very much. Have a good day!</p>`
+
+    }
+    return result
+}
+
 module.exports = {
-    setSimpleEmail, confirmDoctorEmail, cancelDoctor, registerUser
+    setSimpleEmail, confirmDoctorEmail, cancelDoctor, registerUser, paymentOrder
 }
