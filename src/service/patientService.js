@@ -35,7 +35,7 @@ let postBookAppoinmentService = (data) => {
                         roleId: 'R3',
                         gender: data.gender,
                         address: data.address,
-                        phone: data.phoneNumber,
+                        phoneNumber: data.phoneNumber,
                     }
                 })
 
