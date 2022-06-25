@@ -537,7 +537,7 @@ let handleConfirmAndPaymentPatientService = (data) => {
 }
 
 let paymentOrderLink = (patientName, phoneNumber, date, email, price, doctorName, timeSchudle, doctorId, patientId) => {
-    let result = `${process.env.URL_REACT}/payment-order?patientName=${patientName}&doctorId=${doctorId}&patientId=${patientId}&timeSchudle=${encodeURIComponent(timeSchudle)}&phoneNumber=${phoneNumber}&date=${date}&email=${email}&price=${price}&doctorName=${doctorName}`
+    let result = `${process.env.URL_REACT}/payment-order?patientName=${encodeURIComponent(patientName)}&doctorId=${doctorId}&patientId=${patientId}&timeSchudle=${encodeURIComponent(timeSchudle)}&phoneNumber=${phoneNumber}&date=${date}&email=${email}&price=${price}&doctorName=${encodeURIComponent(doctorNameS)}`
     return result
 }
 
