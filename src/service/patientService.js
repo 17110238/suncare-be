@@ -125,7 +125,7 @@ let postVerifyBookAppoinmentService = (data) => {
                 else {
                     resolve({
                         errCode: 2,
-                        errMessage: data.isConfirm === 'true' ? 'Lịch hẹn không tồn tại hoặc đã tồn tại!' : 'Lịch khám này đã được hủy!',
+                        errMessage: data.isConfirm === 'true' ? 'Lịch hẹn này đã được đặt!' : 'Lịch khám này đã được hủy!',
                     })
                 }
             }

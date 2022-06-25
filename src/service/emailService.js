@@ -215,6 +215,78 @@ let getBodyPaymentOrderHTML = (dataSend) => {
     return result
 }
 
+let cancleScheduleFromDoctor = async (dataSend) => {
+    let transporter = nodemailer.createTransport({
+        host: "smtp.gmail.com",
+        port: 587,
+        secure: false, // true for 465, false for other ports
+        auth: {
+            user: process.env.EMAIL_APP, // generated ethereal user
+            pass: process.env.EMAIL_APP_PASSWORD, // generated ethereal password
+        },
+    });
+
+    // send mail with defined transport object
+    let info = await transporter.sendMail({
+        from: "<phamngoctien4321@gmail.com>", // sender address
+        to: dataSend.receiverEmail, // list of receivers
+        subject: dataSend.language === 'vi' ? 'Hủy lịch khám bệnh!' : 'Cancel the appointment!', // Subject line
+        html: getBodyCancleScheduleFromDoctorHTML(dataSend)
+    })
+}
+
+let getBodyCancleScheduleFromDoctorHTML = (dataSend) => {
+    let result = ''
+    if (dataSend.language === 'vi') {
+        result = `<h3>Xin chào ${dataSend.patientName}!</h3>
+        <p>Bạn nhận được email này vì hiện tại Bác sĩ không thể tham gia vào buổi khám bệnh này. Vui lòng chọn thời gian khác hoặc đặt lại lịch sau!</p>
+        <p>Một lần nữa, chào mừng và xin chân thành cảm ơn bạn. Chúc bạn một ngày an lành!</p>`
+    }
+    if (dataSend.language === 'en') {
+        result = `<h3> Dear ${dataSend.patientName}!</h3>
+        <p>You received this email because the Doctor is currently unable to attend this session. Please choose another time or reschedule later!</p>
+        <p>Once again, welcome and thank you very much. Have a good day!</p>`
+
+    }
+    return result
+}
+
+let noConfirmScheduleFromDoctor = async (dataSend) => {
+    let transporter = nodemailer.createTransport({
+        host: "smtp.gmail.com",
+        port: 587,
+        secure: false, // true for 465, false for other ports
+        auth: {
+            user: process.env.EMAIL_APP, // generated ethereal user
+            pass: process.env.EMAIL_APP_PASSWORD, // generated ethereal password
+        },
+    });
+
+    // send mail with defined transport object
+    let info = await transporter.sendMail({
+        from: "<phamngoctien4321@gmail.com>", // sender address
+        to: dataSend.receiverEmail, // list of receivers
+        subject: dataSend.language === 'vi' ? 'Không đủ điều kiện khám bệnh' : 'Not eligible for medical examination', // Subject line
+        html: getBodyNoConfirmScheduleFromDoctorHTML(dataSend)
+    })
+}
+
+let getBodyNoConfirmScheduleFromDoctorHTML = (dataSend) => {
+    let result = ''
+    if (dataSend.language === 'vi') {
+        result = `<h3>Xin chào ${dataSend.patientName}!</h3>
+        <p>Bạn nhận được email này vì hiện tại thông tin của bạn không đủ điều kiện để khám bệnh. Vui lòng kiểm tra lại thông tin và đăng ký lại sau.</p>
+        <p>Một lần nữa, chào mừng và xin chân thành cảm ơn bạn. Chúc bạn một ngày an lành!</p>`
+    }
+    if (dataSend.language === 'en') {
+        result = `<h3> Dear ${dataSend.patientName}!</h3>
+        <p>You received this email because your information is not currently eligible for medical examination. Please check the information and register again later.</p>
+        <p>Once again, welcome and thank you very much. Have a good day!</p>`
+
+    }
+    return result
+}
+
 module.exports = {
-    setSimpleEmail, confirmDoctorEmail, cancelDoctor, registerUser, paymentOrder
+    setSimpleEmail, confirmDoctorEmail, cancelDoctor, registerUser, paymentOrder, cancleScheduleFromDoctor, noConfirmScheduleFromDoctor
 }
