@@ -469,27 +469,65 @@ let handleConfirmAndPaymentPatientService = (data) => {
                 })
             }
             else {
-                let appointment = await db.Booking.findOne({
-                    where: {
-                        doctorId: data.doctorId,
-                        patientId: data.patientId,
-                        timeType: data.timeType,
-                        statusId: 'S2'
-                    },
-                    raw: false,
-                })
-                if (appointment) {
-                    await emailService.paymentOrder({
+                if (data.action === 'confirm') {
+                    let appointment = await db.Booking.findOne({
+                        where: {
+                            doctorId: data.doctorId,
+                            patientId: data.patientId,
+                            timeType: data.timeType,
+                            statusId: 'S2'
+                        },
+                        raw: false,
+                    })
+                    if (appointment) {
+                        await emailService.paymentOrder({
+                            receiverEmail: data.email,
+                            patientName: data.patientName,
+                            language: data.language,
+                            paymentOrderLink: paymentOrderLink(data.patientName, data.phoneNumber, data.currentDate, data.email, data.price, data.doctorName, data.timeSchudle, data.doctorId, data.patientId),
+                        }) // send email to confirm doctor
+                    }
+                    resolve({
+                        errCode: 0,
+                        errMessage: data.language === 'vi' ? 'Xác nhận thông tin thành công và đã gửi hóa đơn đến người dùng.' : 'Confirm the information successfully and have sent the invoice to the user.'
+                    })
+                }
+                if (data.action === 'cancel') {
+                    await emailService.cancleScheduleFromDoctor({
                         receiverEmail: data.email,
                         patientName: data.patientName,
                         language: data.language,
-                        paymentOrderLink: paymentOrderLink(data.patientName, data.phoneNumber, data.currentDate, data.email, data.price, data.doctorName, data.timeSchudle, data.doctorId, data.patientId),
-                    }) // send email to confirm doctor
+                    })
+                    resolve({
+                        errCode: 0,
+                        errMessage: data.language === 'vi' ? 'Xác nhận hủy lịch thành công !' : 'Cancellation confirmation successful!'
+                    })
                 }
-                resolve({
-                    errCode: 0,
-                    errMessage: data.language === 'vi' ? 'Xác nhận thông tin thành công và đã gửi hóa đơn đến người dùng.' : 'Confirm the information successfully and have sent the invoice to the user.'
-                })
+                else {
+                    const schedule = await db.Schedule.findOne({
+                        where: {
+                            doctorId: data.doctorId,
+                            timeType: data.timeType,
+                            date: data.date
+                        },
+                        raw: false
+                    })
+
+                    if (schedule) {
+                        schedule.isActive = true
+                        await schedule.save()
+                    }
+                    await emailService.noConfirmScheduleFromDoctor({
+                        receiverEmail: data.email,
+                        patientName: data.patientName,
+                        language: data.language,
+                    })
+
+                    resolve({
+                        errCode: 0,
+                        errMessage: data.language === 'vi' ? 'Xác nhận không khám thành công !' : 'Confirmed failure to check successfully!'
+                    })
+                }
             }
         }
         catch (err) {
