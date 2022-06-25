@@ -531,13 +531,14 @@ let handleConfirmAndPaymentPatientService = (data) => {
             }
         }
         catch (err) {
+            console.log("err", err)
             reject(err)
         }
     })
 }
 
 let paymentOrderLink = (patientName, phoneNumber, date, email, price, doctorName, timeSchudle, doctorId, patientId) => {
-    let result = `${process.env.URL_REACT}/payment-order?patientName=${encodeURIComponent(patientName)}&doctorId=${doctorId}&patientId=${patientId}&timeSchudle=${encodeURIComponent(timeSchudle)}&phoneNumber=${phoneNumber}&date=${date}&email=${email}&price=${price}&doctorName=${encodeURIComponent(doctorNameS)}`
+    let result = `${process.env.URL_REACT}/payment-order?patientName=${encodeURIComponent(patientName)}&doctorId=${encodeURIComponent(doctorId)}&patientId=${encodeURIComponent(patientId)}&timeSchudle=${encodeURIComponent(timeSchudle)}&phoneNumber=${encodeURIComponent(phoneNumber)}&date=${encodeURIComponent(date)}&email=${encodeURIComponent(email)}&price=${encodeURIComponent(price)}&doctorName=${encodeURIComponent(doctorName)}`
     return result
 }
 
