@@ -27,7 +27,7 @@ let postBookAppoinmentService = (data) => {
                     redirectConfirmSheduleLink: confirmSchedule(data.doctorId, token),
                     redirectCancleSheduleLink: cancleSchedule(data.doctorId, token, data.scheduleId)
                 })
-                // upsert
+                // upserts
                 let user = await db.User.findOrCreate({
                     where: { email: data.email },
                     defaults: {
@@ -138,7 +138,7 @@ let postVerifyBookAppoinmentService = (data) => {
 
 let handlePaymentCheckoutService = (data) => {
     return new Promise(async (resolve, reject) => {
-        const { token, email, price, patientName, patientId, doctorId, date } = data
+        const { token, email, price, patientName, patientId, doctorId, date, timeType, currentDate } = data
         try {
             if (!token || !email || !price) {
                 resolve({
@@ -150,10 +150,11 @@ let handlePaymentCheckoutService = (data) => {
                 try {
                     const appoinment = await db.Booking.findOne({
                         where: {
-                            statusId: 'S2',
+                            statusId: 'S5',
                             patientId,
                             doctorId,
-                            date
+                            date,
+                            timeType
                         },
                         raw: false
                     })
@@ -185,7 +186,16 @@ let handlePaymentCheckoutService = (data) => {
                             if (appoinment) {
                                 appoinment.statusId = 'S3'
                                 await appoinment.save()
+
+                                await db.Order.create({
+                                    doctorId,
+                                    patientId,
+                                    date: currentDate,
+                                    total: price,
+                                    unit: charge.currency
+                                })
                             }
+
                         }
                         resolve({
                             errCode: 0,

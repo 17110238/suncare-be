@@ -1,6 +1,7 @@
 import db from '../models/index'
 import bcrypt from "bcryptjs"
 import emailService from './emailService'
+const sequelize = require('sequelize');
 
 const salt = bcrypt.genSaltSync(10)
 
@@ -289,6 +290,29 @@ let handleConfirmDoctor = (data) => {
     })
 }
 
+let revenueStatisticsService = () => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            const getAll = await db.Order.findAll({
+                attributes: ['date',
+                    [sequelize.fn('sum', sequelize.col('total')), 'total_amount'],
+                ],
+                group: ['date'],
+            })
+
+            resolve({
+                errCode: 0,
+                message: "Confirmation of user information successfully!",
+                data: getAll
+            })
+        }
+        catch (err) {
+            console.log("err", err)
+            reject(err)
+        }
+    })
+}
+
 module.exports = {
-    handleUserLogin, getAllUsers, createNewUser, deleteUser, updateUser, getAllCodeService, handleConfirmDoctor
+    handleUserLogin, getAllUsers, createNewUser, deleteUser, updateUser, getAllCodeService, handleConfirmDoctor, revenueStatisticsService
 }

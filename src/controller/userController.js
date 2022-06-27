@@ -87,7 +87,20 @@ let confirmDoctor = async (req, res) => {
     }
 }
 
+let revenueStatistics = async (req, res) => {
+    try {
+        let statictis = await UserService.revenueStatisticsService()
+        return res.status(200).json(statictis)
+    }
+    catch (error) {
+        return res.status(200).json({
+            errCode: -1,
+            errMessage: 'Error from Server!'
+        })
+    }
+}
+
 
 module.exports = {
-    handleLogin, handleGetAllUsers, handleCreateNewUser, handleEditUser, handleDeleteUser, getAllCode, confirmDoctor
+    handleLogin, handleGetAllUsers, handleCreateNewUser, handleEditUser, handleDeleteUser, getAllCode, confirmDoctor, revenueStatistics
 }

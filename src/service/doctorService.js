@@ -18,7 +18,7 @@ let getDoctorHomeService = (limitInput) => {
                 },
                 include: [
                     { model: db.Allcode, as: 'positionData', attributes: ['valueEn', 'valueVi'] },
-                    { model: db.Allcode, as: 'genderData', attributes: ['valueEn', 'valueVi'] }
+                    { model: db.Allcode, as: 'genderData', attributes: ['valueEn', 'valueVi'] },
                 ],
                 raw: true,
                 nest: true,
@@ -421,7 +421,6 @@ let getListPatientForDoctorService = (doctorId, date) => {
             else {
                 let data = await db.Booking.findAll({
                     where: {
-                        // statusId: 'S2',
                         doctorId: doctorId,
                         date: date
                     },
@@ -469,41 +468,33 @@ let handleConfirmAndPaymentPatientService = (data) => {
                 })
             }
             else {
+                let appointment = await db.Booking.findOne({
+                    where: {
+                        doctorId: data.doctorId,
+                        patientId: data.patientId,
+                        timeType: data.timeType,
+                        statusId: 'S2'
+                    },
+                    raw: false,
+                })
                 if (data.action === 'confirm') {
-                    let appointment = await db.Booking.findOne({
-                        where: {
-                            doctorId: data.doctorId,
-                            patientId: data.patientId,
-                            timeType: data.timeType,
-                            statusId: 'S2'
-                        },
-                        raw: false,
-                    })
                     if (appointment) {
+                        appointment.statusId = 'S5'
+                        await appointment.save();
                         await emailService.paymentOrder({
                             receiverEmail: data.email,
                             patientName: data.patientName,
                             language: data.language,
-                            paymentOrderLink: paymentOrderLink(data.patientName, data.phoneNumber, data.currentDate, data.email, data.price, data.doctorName, data.timeSchudle, data.doctorId, data.patientId),
+                            paymentOrderLink: paymentOrderLink(data.patientName, data.phoneNumber, data.currentDate, data.email, data.price, data.doctorName, data.timeSchudle, data.doctorId, data.patientId, data.timeType),
                         }) // send email to confirm doctor
+
+                        resolve({
+                            errCode: 0,
+                            errMessage: data.language === 'vi' ? 'Xác nhận thông tin thành công và đã gửi hóa đơn đến người dùng.' : 'Confirm the information successfully and have sent the invoice to the user.'
+                        })
                     }
-                    resolve({
-                        errCode: 0,
-                        errMessage: data.language === 'vi' ? 'Xác nhận thông tin thành công và đã gửi hóa đơn đến người dùng.' : 'Confirm the information successfully and have sent the invoice to the user.'
-                    })
                 }
                 if (data.action === 'cancel') {
-                    await emailService.cancleScheduleFromDoctor({
-                        receiverEmail: data.email,
-                        patientName: data.patientName,
-                        language: data.language,
-                    })
-                    resolve({
-                        errCode: 0,
-                        errMessage: data.language === 'vi' ? 'Xác nhận hủy lịch thành công !' : 'Cancellation confirmation successful!'
-                    })
-                }
-                else {
                     const schedule = await db.Schedule.findOne({
                         where: {
                             doctorId: data.doctorId,
@@ -517,15 +508,16 @@ let handleConfirmAndPaymentPatientService = (data) => {
                         schedule.isActive = true
                         await schedule.save()
                     }
-                    await emailService.noConfirmScheduleFromDoctor({
+                    appointment.statusId = 'S4'
+                    await appointment.save();
+                    await emailService.cancleScheduleFromDoctor({
                         receiverEmail: data.email,
                         patientName: data.patientName,
                         language: data.language,
                     })
-
                     resolve({
                         errCode: 0,
-                        errMessage: data.language === 'vi' ? 'Xác nhận không khám thành công !' : 'Confirmed failure to check successfully!'
+                        errMessage: data.language === 'vi' ? 'Xác nhận hủy lịch thành công !' : 'Cancellation confirmation successful!'
                     })
                 }
             }
@@ -537,8 +529,8 @@ let handleConfirmAndPaymentPatientService = (data) => {
     })
 }
 
-let paymentOrderLink = (patientName, phoneNumber, date, email, price, doctorName, timeSchudle, doctorId, patientId) => {
-    let result = `${process.env.URL_REACT}/payment-order?patientName=${encodeURIComponent(patientName)}&doctorId=${encodeURIComponent(doctorId)}&patientId=${encodeURIComponent(patientId)}&timeSchudle=${encodeURIComponent(timeSchudle)}&phoneNumber=${encodeURIComponent(phoneNumber)}&date=${encodeURIComponent(date)}&email=${encodeURIComponent(email)}&price=${encodeURIComponent(price)}&doctorName=${encodeURIComponent(doctorName)}`
+let paymentOrderLink = (patientName, phoneNumber, date, email, price, doctorName, timeSchudle, doctorId, patientId, timeType) => {
+    let result = `${process.env.URL_REACT}/payment-order?patientName=${encodeURIComponent(patientName)}&doctorId=${encodeURIComponent(doctorId)}&patientId=${encodeURIComponent(patientId)}&timeSchudle=${encodeURIComponent(timeSchudle)}&phoneNumber=${encodeURIComponent(phoneNumber)}&date=${encodeURIComponent(date)}&email=${encodeURIComponent(email)}&price=${encodeURIComponent(price)}&doctorName=${encodeURIComponent(doctorName)}&timeType=${timeType}`
     return result
 }
 

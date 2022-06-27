@@ -23,6 +23,7 @@ let initWebRouters = (app) => {
     router.post('/api/delete-user', userController.handleDeleteUser)
     router.get('/api/get-allcode', userController.getAllCode)
     router.post('/api/confirmDoctor', userController.confirmDoctor)
+    router.get('/api/revenueStatistics', userController.revenueStatistics)
 
     // doctor
     router.get('/api/top-doctor-home', doctorController.getTopDoctorHome)
@@ -49,7 +50,6 @@ let initWebRouters = (app) => {
 
     router.get('/api/get-detail-specialty', specialtyController.getDetailSpecialty)
     router.get('/api/get-detail-specialty-by-id', specialtyController.getDetailSpecialtyById)
-
 
     return app.use('/', router)
 }
