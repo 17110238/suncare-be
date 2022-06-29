@@ -301,7 +301,7 @@ let confirmVideoExaminationEmail = async (dataSend) => {
     let info = await transporter.sendMail({
         from: "<phamngoctien4321@gmail.com>", // sender address
         to: dataSend.receiverEmail, // list of receivers
-        subject: "Xac nhan thong tin lich kham truc tuyen", // Subject line
+        subject: "Xac nhan thong tin va yeu cau thanh toan lich kham truc tuyen", // Subject line
         html: getBodyConfirmVideoExaminationHTML(dataSend)
     })
 }
@@ -311,15 +311,18 @@ let getBodyConfirmVideoExaminationHTML = (dataSend) => {
     if (dataSend.language === 'vi') {
         result = `<h3>Xin chào ${dataSend.patientName}!</h3>
         <p>Cảm ơn bạn vì đã tin tưởng Suncare!</p>
-        <p>Sau khi kiểm tra thông tin đăng ký của bạn, bác sĩ đã xác nhận thành công đơn đăng ký của bạn và sẽ gửi cho bạn mật khẩu và đường dẫn tới buổi khám trực tuyến qua hình thức video call trước giờ khám 5 phút.</p>
-        <p>Bạn vui lòng nhấn xác nhận thanh toán để hoàn thành thủ tục đăng ký.</p>
+        <p>Sau khi kiểm tra thông tin đăng ký của bạn, bác sĩ đã xác nhận thành công đơn đăng ký của bạn và sẽ gửi cho bạn đường dẫn tới buổi khám trực tuyến qua hình thức video call và mật khẩu buổi họp trước giờ khám 5 phút sau khi bạn hoàn thành thủ tục thanh toán.</p>
+        <p>Bạn vui lòng nhấn vào link dưới để hoàn thành thủ tục thanh toán.</p>
+        <a href=${dataSend.paymentOrderLink}></a>
         <p>SunCare xin chân thành cảm ơn!</p>
         `
     }
     if (dataSend.language === 'en') {
         result = `<h3> Dear ${dataSend.patientName}!</h3>
         <p>Thank you for trusting Suncare!</p>
-        <p>After checking your registration information, the doctor confirmed your registration and will send you a link to the meeting call and its password</p>
+        <p>After checking your registration information, the doctor confirmed your registration and will send you a link to the meeting call and its password before 5 minutes of the examination after you finished the payment.</p>
+        <p>Please click the link below to finish the payment</p>
+        <a href=${dataSend.paymentOrderLink}></a>
         <p>Sincerely thank!</p>
         `
     }
@@ -351,8 +354,8 @@ let getBodySendingVideoExaminationHTML = (dataSend) => {
         result = `<h3>Xin chào ${dataSend.patientName}!</h3>
         <p>Cảm ơn bạn vì đã tin tưởng Suncare!</p>
         <p>SunCare xin gửi tới bạn mật khẩu và đường dẫn tới phòng khám trực tuyến với bác sĩ.</p>
-        <p>Link buổi họp: </p>
-        <p>Mật khẩu buổi họp: </p>
+        <p>Link buổi họp: <a href= ${datasend.linkMeeting}></a> </p>
+        <p>Mật khẩu buổi họp: <a href= ${datasend.linkPassword}></a> </p>
         <p>SunCare xin chân thành cảm ơn!</p>
         `
     }
@@ -360,8 +363,8 @@ let getBodySendingVideoExaminationHTML = (dataSend) => {
         result = `<h3> Dear ${dataSend.patientName}!</h3>
         <p>Thank you for trusting Suncare!</p>
         <p>We send to you the password and the link which will help you meet the doctor</p>
-        <p>Link meeting room: </p>
-        <p>Password: </p>
+        <p>Link meeting room: <a href= ${datasend.linkMeeting}></a </p>
+        <p>Password: <a href= ${datasend.linkPassword}></a> </p>
         <p>Sincerely thank!</p>
         `
     }
