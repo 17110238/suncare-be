@@ -6,6 +6,7 @@ import Stripe from 'stripe';
 const stripe = new Stripe('sk_test_51LC4rKI4mP7c8dVY3ef3fTSn30ch5e3x1SJrmJwYTIEXzkeeZ7aIPZHSUoZc0TLBv6TvRfZmVs2YzVv30JGx47t7002UNF7yPT');
 
 let postBookAppoinmentService = (data) => {
+    console.log("data", data)
     return new Promise(async (resolve, reject) => {
         try {
             if (!data.email || !data.doctorId || !data.timeType || !data.date || !data.name) {
@@ -58,6 +59,7 @@ let postBookAppoinmentService = (data) => {
                         timeType: data.timeType,
                         token: token,
                         priceId: data.priceId,
+                        formality: data.formality
                     })
                 }
                 resolve({

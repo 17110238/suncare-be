@@ -241,12 +241,12 @@ let bulkCreateScheduleService = (data) => {
                 }
                 // get All exist data
                 let existing = await db.Schedule.findAll({
-                    where: { doctorId: data.doctorId, date: data.date },
-                    attributes: ['timeType', 'date', 'doctorId', 'maxNumber']
+                    where: { doctorId: data.doctorId, date: data.date, },
+                    attributes: ['timeType', 'date', 'doctorId', 'maxNumber', 'formality']
                 })
 
                 let toCreate = _.differenceWith(schedule, existing, (a, b) => {
-                    return a.timeType === b.timeType && a.date === b.date
+                    return a.timeType === b.timeType && a.date === b.date && a.formality === b.formality
                 })
 
                 if (toCreate?.length > 0) {
@@ -265,7 +265,7 @@ let bulkCreateScheduleService = (data) => {
     })
 }
 
-let getScheduleByDateService = (doctorId, date) => {
+let getScheduleByDateService = (doctorId, date, formality) => {
     return new Promise(async (resolve, reject) => {
         try {
             if (!doctorId || !date) {
@@ -276,7 +276,7 @@ let getScheduleByDateService = (doctorId, date) => {
             }
             else {
                 let dataSchedule = await db.Schedule.findAll({
-                    where: { doctorId: doctorId, date: date },
+                    where: { doctorId: doctorId, date: date, formality },
                     include: [
                         { model: db.Allcode, as: 'timeTypeData', attributes: ['valueEn', 'valueVi'] },
                         { model: db.User, as: 'doctorData', attributes: ['firstName', 'lastName'] },
@@ -534,8 +534,26 @@ let paymentOrderLink = (patientName, phoneNumber, date, email, price, doctorName
     return result
 }
 
+let handleBookMeetingRoomService = (data) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+
+            // await emailService.cancleScheduleFromDoctor({
+            //     receiverEmail: data.email,
+            //     patientName: data.patientName,
+            //     language: data.language,
+            // })
+
+        }
+        catch (err) {
+            console.log("err", err)
+            reject(err)
+        }
+    })
+}
+
 module.exports = {
     getDoctorHomeService, getAllDoctorService, saveDetailInfoDoctorService, getDoctorByIdService, getAllcodeScheduleTimeDoctorService,
     bulkCreateScheduleService, getScheduleByDateService, getListPriceService, getListPaymentService, getProvinceService,
-    getProfileDoctorByIdService, getListPatientForDoctorService, handleConfirmAndPaymentPatientService
+    getProfileDoctorByIdService, getListPatientForDoctorService, handleConfirmAndPaymentPatientService, handleBookMeetingRoomService
 }

@@ -93,7 +93,7 @@ let bulkCreateSchedule = async (req, res) => {
 
 let getScheduleByDate = async (req, res) => {
     try {
-        let date = await doctorService.getScheduleByDateService(req.query.doctorId, req.query.date)
+        let date = await doctorService.getScheduleByDateService(req.query.doctorId, req.query.date, req.query.formality)
         return res.status(200).json(date)
     }
     catch (error) {
@@ -185,8 +185,23 @@ let handleConfirmAndPaymentPatient = async (req, res) => {
     }
 }
 
+let handleBookMeetingRoom = async (req, res) => {
+    try {
+        const data = req.body
+        let meeting = await doctorService.handleBookMeetingRoomService(data)
+        return res.status(200).json(meeting)
+    }
+    catch (error) {
+        return res.status(200).json({
+            errCode: -1,
+            errMessage: 'Error from Server!'
+        })
+    }
+}
+
 
 module.exports = {
     getTopDoctorHome, getAllDoctor, postInfoDoctors, getDoctorByID, getAllcodeScheduleTimeDoctor, bulkCreateSchedule, getScheduleByDate,
-    getListPrice, getListPayment, getProvince, getProfileDoctorById, getListPatientForDoctor, handleConfirmAndPaymentPatient
+    getListPrice, getListPayment, getProvince, getProfileDoctorById, getListPatientForDoctor, handleConfirmAndPaymentPatient,
+    handleBookMeetingRoom
 }
