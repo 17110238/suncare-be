@@ -538,11 +538,18 @@ let handleBookMeetingRoomService = (data) => {
     return new Promise(async (resolve, reject) => {
         try {
 
-            // await emailService.cancleScheduleFromDoctor({
-            //     receiverEmail: data.email,
-            //     patientName: data.patientName,
-            //     language: data.language,
-            // })
+            await emailService.sendingVideoExaminationEmail({
+                receiverEmail: data.email,
+                patientName: data.patientName,
+                language: data.language,
+                password: data.password,
+                linkMeeting: `http://localhost:3000/doctor/video-meeting`
+            })
+
+            resolve({
+                errCode: 0,
+                errMessage: data.language === 'vi' ? 'Gửi email thành công!' : 'Email sent successfully!'
+            })
 
         }
         catch (err) {
